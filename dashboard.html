@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart DG Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" > </script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; text-align: center; margin-top: 50px; }
+        .card { background-color: #333; padding: 20px; border-radius: 10px; display: inline-block; min-width: 300px; }
+        .data { font-size: 24px; font-weight: bold; color: #4CAF50; }
+        .btn { padding: 15px 30px; font-size: 16px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; color: white; }
+        .btn-red { background-color: #f44336; }
+        .btn-green { background-color: #4CAF50; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>DG Backup Telemetry</h2>
+        <p>Status: <span id="status" style="color: #ffeb3b;">Connecting...</span></p>
+        <p>Grid Present: <span id="grid" class="data">--</span></p>
+        <p>Voltage: <span id="volt" class="data">--</span> V</p>
+        <p>Power: <span id="power" class="data">--</span> W</p>
+        
+        <hr style="border-color: #555; margin: 20px 0;">
+        
+        <button class="btn btn-red" onclick="sendCommand('DISCONNECT')">DISCONNECT LOAD</button>
+        <button class="btn btn-green" onclick="sendCommand('RESTORE')">RESTORE LOAD</button>
+    </div>
+
+    <script>
+        const clientId = "WebClient-" + Math.floor(Math.random() * 10000);
+        // Using your specific local IPv4 address
+        const client = new Paho.MQTT.Client("127.0.0.1", 8000, "/mqtt", clientId);
+
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        client.connect({ onSuccess: onConnect });
+
+        function onConnect() {
+            document.getElementById("status").innerText = "Connected";
+            document.getElementById("status").style.color = "#4CAF50";
+            client.subscribe("smartdg/telemetry");
+        }
+
+        function onConnectionLost(responseObject) {
+            document.getElementById("status").innerText = "Disconnected";
+            document.getElementById("status").style.color = "#f44336";
+        }
+
+        function onMessageArrived(message) {
+            if(message.destinationName === "smartdg/telemetry") {
+                const data = JSON.parse(message.payloadString);
+                document.getElementById("volt").innerText = data.voltage.toFixed(1);
+                document.getElementById("power").innerText = data.power.toFixed(1);
+                document.getElementById("grid").innerText = data.grid_present ? "YES" : "NO";
+            }
+        }
+
+        function sendCommand(cmd) {
+            const message = new Paho.MQTT.Message(cmd);
+            message.destinationName = "smartdg/relay/command";
+            client.send(message);
+        }
+    </script>
+</body>
+</html>
