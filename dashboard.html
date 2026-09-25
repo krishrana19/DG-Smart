@@ -1,67 +1,170 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart DG Monitor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" > </script>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; text-align: center; margin-top: 50px; }
-        .card { background-color: #333; padding: 20px; border-radius: 10px; display: inline-block; min-width: 300px; }
-        .data { font-size: 24px; font-weight: bold; color: #4CAF50; }
-        .btn { padding: 15px 30px; font-size: 16px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; color: white; }
-        .btn-red { background-color: #f44336; }
-        .btn-green { background-color: #4CAF50; }
-    </style>
+<title>Command Center - DG Smart</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+<style>
+:root { --bg: #050b14; --surface: #111827; --surface-border: #1f2937; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f9fafb; --text-muted: #9ca3af; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+.dashboard-container { width: 100%; max-width: 1100px; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: var(--surface); border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--surface-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; }
+.badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+.btn-logout { background: transparent; border: 1px solid var(--surface-border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+.btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+.stat-card { background: var(--surface); padding: 25px; border-radius: 16px; border: 1px solid var(--surface-border); position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
+.stat-title { color: var(--text-muted); font-size: 13px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+.stat-value { font-size: 32px; font-weight: 700; }
+.stat-unit { font-size: 14px; color: var(--text-muted); font-weight: normal; }
+.table-container { background: var(--surface); padding: 25px; border-radius: 16px; border: 1px solid var(--surface-border); overflow-x: auto; }
+.table-container h3 { margin-top: 0; color: var(--text); font-size: 18px; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th { padding: 15px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; border-bottom: 2px solid var(--surface-border); }
+td { padding: 15px; border-bottom: 1px solid var(--surface-border); font-size: 14px; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.btn-small { padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; border: none; color: white; margin-right: 5px; }
+.btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.btn-green { background: linear-gradient(135deg, #10b981, #059669); }
+</style>
 </head>
 <body>
+<div class="dashboard-container">
+<div class="header">
+<h1>⚡ DG Smart Master Console</h1>
+<div style="display: flex; gap: 15px; align-items: center;">
+<div id="mqtt-status" class="badge badge-warning">Connecting...</div>
+<button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+</div>
 
-    <div class="card">
-        <h2>DG Backup Telemetry</h2>
-        <p>Status: <span id="status" style="color: #ffeb3b;">Connecting...</span></p>
-        <p>Grid Present: <span id="grid" class="data">--</span></p>
-        <p>Voltage: <span id="volt" class="data">--</span> V</p>
-        <p>Power: <span id="power" class="data">--</span> W</p>
-        
-        <hr style="border-color: #555; margin: 20px 0;">
-        
-        <button class="btn btn-red" onclick="sendCommand('DISCONNECT')">DISCONNECT LOAD</button>
-        <button class="btn btn-green" onclick="sendCommand('RESTORE')">RESTORE LOAD</button>
+    <div class="stats-grid">
+        <div class="stat-card" style="--primary: #3b82f6;">
+            <div class="stat-title">Master Grid Status</div>
+            <div class="stat-value" id="master-grid" style="color: var(--success);">ONLINE</div>
+        </div>
+        <div class="stat-card" style="--primary: #10b981;">
+            <div class="stat-title">Total System Load</div>
+            <div class="stat-value"><span id="master-power">0.0</span><span class="stat-unit"> W</span></div>
+        </div>
+        <div class="stat-card" style="--primary: #f59e0b;">
+            <div class="stat-title">Active Nodes</div>
+            <div class="stat-value"><span id="master-nodes">0 / 1</span></div>
+        </div>
     </div>
 
-    <script>
-        const clientId = "WebClient-" + Math.floor(Math.random() * 10000);
-        // Using your specific local IPv4 address
-        const client = new Paho.MQTT.Client("127.0.0.1", 8000, "/mqtt", clientId);
+    <div class="table-container">
+        <h3>Live Node Database</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Node ID</th>
+                    <th>Link Status</th>
+                    <th>Voltage</th>
+                    <th>Active Load</th>
+                    <th>Billing Status</th>
+                    <th>Remote Override</th>
+                </tr>
+            </thead>
+            <tbody id="customer-table-body">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Syncing with Cloud Database...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        client.onConnectionLost = onConnectionLost;
-        client.onMessageArrived = onMessageArrived;
+<script>
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/login.html";
+    }
 
-        client.connect({ onSuccess: onConnect });
+    window.onload = function() {
+        fetch('/api/customers')
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    const tbody = document.getElementById('customer-table-body');
+                    tbody.innerHTML = ""; 
+                    
+                    data.customers.forEach(cust => {
+                        let statusBadge = '';
+                        if(cust.bill_amount === 0 || cust.due_date === "Paid") {
+                            statusBadge = '<span class="badge badge-success">Paid</span>';
+                        } else if (cust.bill_amount > 2000) {
+                            statusBadge = '<span class="badge badge-danger">Overdue</span>';
+                        } else {
+                            statusBadge = '<span class="badge badge-warning">Pending</span>';
+                        }
 
-        function onConnect() {
-            document.getElementById("status").innerText = "Connected";
-            document.getElementById("status").style.color = "#4CAF50";
-            client.subscribe("smartdg/telemetry");
-        }
+                        // Bulletproof string building that won't break in Notepad
+                        let rowHTML = '<tr id="row-' + cust.userid + '">';
+                        rowHTML += '<td style="font-weight: bold;">' + cust.name + '</td>';
+                        rowHTML += '<td style="color: var(--text-muted);">' + cust.userid + '</td>';
+                        rowHTML += '<td id="grid-' + cust.userid + '">--</td>';
+                        rowHTML += '<td><span id="volt-' + cust.userid + '">--</span> V</td>';
+                        rowHTML += '<td style="color: var(--primary); font-weight: bold;"><span id="power-' + cust.userid + '">--</span> W</td>';
+                        rowHTML += '<td>₹' + cust.bill_amount + '   ' + statusBadge + '</td>';
+                        rowHTML += '<td>';
+                        rowHTML += '<button class="btn-small btn-red" onclick="sendCommand(\'DISCONNECT\')">Cut Load</button>';
+                        rowHTML += '<button class="btn-small btn-green" onclick="sendCommand(\'RESTORE\')">Restore</button>';
+                        rowHTML += '</td>';
+                        rowHTML += '</tr>';
+                        
+                        tbody.innerHTML += rowHTML;
+                    });
+                }
+            });
+    };
 
-        function onConnectionLost(responseObject) {
-            document.getElementById("status").innerText = "Disconnected";
-            document.getElementById("status").style.color = "#f44336";
-        }
+    const clientId = "AdminClient-" + Math.floor(Math.random() * 10000);
+    const client = new Paho.MQTT.Client("127.0.0.1", 8000, "/mqtt", clientId);
 
-        function onMessageArrived(message) {
-            if(message.destinationName === "smartdg/telemetry") {
-                const data = JSON.parse(message.payloadString);
-                document.getElementById("volt").innerText = data.voltage.toFixed(1);
-                document.getElementById("power").innerText = data.power.toFixed(1);
-                document.getElementById("grid").innerText = data.grid_present ? "YES" : "NO";
+    client.onConnectionLost = function() {
+        const el = document.getElementById("mqtt-status");
+        el.className = "badge badge-danger";
+        el.innerText = "Offline";
+    };
+
+    client.onMessageArrived = function(message) {
+        if(message.destinationName === "smartdg/telemetry") {
+            const data = JSON.parse(message.payloadString);
+            
+            const voltCell = document.getElementById("volt-CUST001");
+            const powerCell = document.getElementById("power-CUST001");
+            const gridCell = document.getElementById("grid-CUST001");
+
+            if (voltCell) voltCell.innerText = data.voltage.toFixed(1);
+            if (powerCell) powerCell.innerText = data.power.toFixed(1);
+            if (gridCell) {
+                gridCell.innerHTML = data.grid_present 
+                    ? '<span style="color: var(--success); font-weight: bold;">● ONLINE</span>' 
+                    : '<span style="color: var(--danger); font-weight: bold;">● OFFLINE</span>';
             }
-        }
 
-        function sendCommand(cmd) {
-            const message = new Paho.MQTT.Message(cmd);
-            message.destinationName = "smartdg/relay/command";
-            client.send(message);
+            document.getElementById("master-power").innerText = data.power.toFixed(1);
+            document.getElementById("master-nodes").innerText = data.grid_present ? "1 / 1" : "0 / 1";
         }
-    </script>
+    };
+
+    client.connect({ onSuccess: function() {
+        const el = document.getElementById("mqtt-status");
+        el.className = "badge badge-success";
+        el.innerText = "System Live";
+        client.subscribe("smartdg/telemetry");
+    }});
+
+    function sendCommand(cmd) {
+        const message = new Paho.MQTT.Message(cmd);
+        message.destinationName = "smartdg/relay/command";
+        client.send(message);
+    }
+</script>
 </body>
 </html>

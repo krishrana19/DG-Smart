@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Account - Smart DG</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+<style>
+:root { --bg: #050b14; --surface: #111827; --surface-border: #1f2937; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --text: #f9fafb; --text-muted: #9ca3af; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+.dashboard-container { width: 100%; max-width: 900px; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: var(--surface); border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--surface-border); }
+.header h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-muted); }
+.header h1 span { color: var(--text); font-weight: 700; }
+.btn-logout { background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+.btn-logout:hover { background: var(--danger); border-color: var(--danger); }
+.grid-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+@media(max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+
+    .card { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--surface-border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .card-header { font-size: 14px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; }
+    
+    .bill-amount { font-size: 48px; font-weight: 800; color: white; margin-bottom: 5px; }
+    .bill-amount span { font-size: 24px; color: var(--text-muted); }
+    .due-date { font-size: 14px; color: var(--danger); font-weight: 600; margin-bottom: 25px; background: rgba(239,68,68,0.1); padding: 5px 10px; border-radius: 6px; display: inline-block; }
+    
+    .btn-pay { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #2563eb); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); }
+
+    .telemetry-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--surface-border); }
+    .telemetry-row:last-child { border-bottom: none; }
+    .t-label { color: var(--text-muted); font-size: 15px; }
+    .t-value { font-size: 18px; font-weight: 700; }
+    
+    .transaction-list { margin-top: 20px; font-size: 14px; }
+    .tx-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--surface-border); color: var(--text-muted); }
+    .tx-item span:last-child { color: var(--success); font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+<div class="header">
+<h1>Hello, <span id="cust-name">User</span></h1>
+<button class="btn-logout" onclick="logout()">Secure Logout</button>
+</div>
+
+    <div class="grid-layout">
+        <!-- Billing Section -->
+        <div class="card">
+            <div class="card-header">
+                <span>Account Balance</span>
+                <span id="acc-status" style="color: var(--success);">● Good Standing</span>
+            </div>
+            <div class="bill-amount"><span>₹</span><span id="bill-val">0</span></div>
+            <div class="due-date">Due: <span id="due-val">N/A</span></div>
+            <button class="btn-pay">Proceed to Payment</button>
+            
+            <div class="card-header" style="margin-top: 40px; margin-bottom: 10px;">Recent Payments</div>
+            <div class="transaction-list">
+                <div class="tx-item"><span>Aug 01, 2026</span><span>- ₹1200</span></div>
+                <div class="tx-item"><span>Jul 05, 2026</span><span>- ₹950</span></div>
+            </div>
+        </div>
+
+        <!-- Live Metering Section -->
+        <div class="card">
+            <div class="card-header">📡 Live Meter Telemetry</div>
+            
+            <div class="telemetry-row">
+                <span class="t-label">Sensor Link</span>
+                <span class="t-value" id="status" style="color: var(--warning);">Connecting...</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="t-label">Grid Supply</span>
+                <span class="t-value" id="grid">--</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="t-label">Current Voltage</span>
+                <span class="t-value"><span id="volt">--</span> V</span>
+            </div>
+            <div class="telemetry-row">
+                <span class="t-label">Active Load</span>
+                <span class="t-value" style="color: var(--primary);"><span id="power">--</span> W</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function logout() {
+        localStorage.clear();
+        window.location.href = "/login.html";
+    }
+
+    // Load Data and update UI rules
+    const billVal = parseInt(localStorage.getItem('custBill')) || 0;
+    document.getElementById('cust-name').innerText = localStorage.getItem('custName') || "User";
+    document.getElementById('bill-val').innerText = billVal;
+    document.getElementById('due-val').innerText = localStorage.getItem('custDue') || "N/A";
+
+    if (billVal > 2000) {
+        const statusEl = document.getElementById('acc-status');
+        statusEl.innerText = "● Action Required";
+        statusEl.style.color = "var(--danger)";
+    }
+
+    // MQTT Connection
+    const clientId = "CustClient-" + Math.floor(Math.random() * 10000);
+    const client = new Paho.MQTT.Client("127.0.0.1", 8000, "/mqtt", clientId);
+    
+    client.onConnectionLost = function() { 
+        const statusEl = document.getElementById("status");
+        statusEl.innerText = "Offline"; 
+        statusEl.style.color = "var(--danger)";
+    };
+    client.onMessageArrived = function(message) {
+        if(message.destinationName === "smartdg/telemetry") {
+            const data = JSON.parse(message.payloadString);
+            document.getElementById("volt").innerText = data.voltage.toFixed(1);
+            document.getElementById("power").innerText = data.power.toFixed(1);
+            const gridEl = document.getElementById("grid");
+            gridEl.innerText = data.grid_present ? "ACTIVE" : "DOWN";
+            gridEl.style.color = data.grid_present ? "var(--success)" : "var(--danger)";
+        }
+    };
+    client.connect({ onSuccess: function() {
+        const statusEl = document.getElementById("status");
+        statusEl.innerText = 'Connected';
+        statusEl.style.color = "var(--success)";
+        client.subscribe("smartdg/telemetry");
+    }});
+</script>
+</body>
+</html>

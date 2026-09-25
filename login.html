@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart DG - Login</title>
+<style>
+:root { --bg-dark: #121212; --card-bg: #1e1e1e; --primary: #4CAF50; --text-light: #ffffff; --text-muted: #aaaaaa; }
+body { font-family: Arial, sans-serif; background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+.login-card { background-color: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
+.login-card h2 { margin-top: 0; color: var(--primary); font-size: 28px; margin-bottom: 30px; }
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
+.input-group input { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px; }
+.btn-login { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.error-msg { color: #f44336; font-size: 14px; margin-top: 15px; display: none; }
+</style>
+</head>
+<body>
+<div class="login-card">
+<h2>Smart DG Portal</h2>
+<div class="input-group">
+<label for="userid">Customer ID / Admin ID</label>
+<input type="text" id="userid" placeholder="Enter your ID" required>
+</div>
+<div class="input-group">
+<label for="password">Password</label>
+<input type="password" id="password" placeholder="Enter your password" required>
+</div>
+<button class="btn-login" onclick="attemptLogin()">Secure Login</button>
+<div class="error-msg" id="error-msg">Invalid ID or password.</div>
+</div>
+
+<script>
+    function attemptLogin() {
+            const id = document.getElementById('userid').value;
+            const pass = document.getElementById('password').value;
+            
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userid: id, password: pass })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Save billing data locally so the next page can display it
+                    localStorage.setItem('custName', data.name);
+                    localStorage.setItem('custBill', data.bill_amount);
+                    localStorage.setItem('custDue', data.due_date);
+                    
+                    // Route to the correct dashboard
+                    if (data.role === 'admin') {
+                        window.location.href = "/dashboard.html"; // Your existing admin control panel
+                    } else {
+                        window.location.href = "/customer.html";
+                    }
+                } else {
+                    document.getElementById('error-msg').style.display = "block";
+                }
+            });
+        }
+</script>
+</body>
+</html>
