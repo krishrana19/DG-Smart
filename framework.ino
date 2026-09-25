@@ -12,6 +12,7 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 unsigned long lastMsg = 0;
+float dummyEnergyKwh = 142.5;
 
 void setup_wifi() {
   delay(10);
@@ -93,12 +94,20 @@ void loop() {
     
     float dummyVoltage = random(2200, 2400) / 10.0; 
     float dummyPower = random(900, 1100) / 10.0;    
+    float dummyPowerFactor = random(90, 99) / 100.0;
+    float dummyCurrent = dummyPower / (dummyVoltage * dummyPowerFactor);
+    float dummyFrequency = random(498, 503) / 10.0;
+    float dummyEnergyKwh += dummyPower * 5.0 / 3600000.0;
     bool dummyGridStatus = random(0, 2);            
     
     String payload = "{";
-    payload += "\"voltage\":" + String(dummyVoltage) + ",";
-    payload += "\"power\":" + String(dummyPower) + ",";
-    payload += "\"grid_present\":" + String(dummyGridStatus ? "true" : "false"); 
+    payload += "\"voltage\":" + String(dummyVoltage, 1) + ",";
+    payload += "\"current\":" + String(dummyCurrent, 2) + ",";
+    payload += "\"power\":" + String(dummyPower, 1) + ",";
+    payload += "\"power_factor\":" + String(dummyPowerFactor, 2) + ",";
+    payload += "\"frequency\":" + String(dummyFrequency, 1) + ",";
+    payload += "\"energy_kwh\":" + String(dummyEnergyKwh, 3) + ",";
+    payload += "\"grid_present\":" + String(dummyGridStatus ? "true" : "false");
     payload += "}";
 
     Serial.print("Publishing telemetry: ");

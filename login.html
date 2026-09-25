@@ -2,63 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Smart DG - Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In - DG Smart</title>
 <style>
-:root { --bg-dark: #121212; --card-bg: #1e1e1e; --primary: #4CAF50; --text-light: #ffffff; --text-muted: #aaaaaa; }
-body { font-family: Arial, sans-serif; background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-.login-card { background-color: var(--card-bg); padding: 40px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
-.login-card h2 { margin-top: 0; color: var(--primary); font-size: 28px; margin-bottom: 30px; }
-.input-group { margin-bottom: 20px; text-align: left; }
-.input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
-.input-group input { width: 100%; padding: 12px; border: 1px solid #333; border-radius: 6px; background-color: #2a2a2a; color: white; box-sizing: border-box; font-size: 16px; }
-.btn-login { width: 100%; padding: 14px; background-color: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-.error-msg { color: #f44336; font-size: 14px; margin-top: 15px; display: none; }
+:root { --bg:#08131c; --surface:#10232d; --border:#24424b; --primary:#58c7c0; --success:#54d39b; --danger:#ff6f61; --text:#f3f7f4; --muted:#9ab0b2; }
+* { box-sizing:border-box; }
+body { margin:0; min-height:100vh; padding:24px; color:var(--text); font-family:'Trebuchet MS','Segoe UI',sans-serif; background:radial-gradient(circle at 50% 0%,rgba(88,199,192,.17),transparent 38%),var(--bg); display:grid; place-items:center; }
+.shell { width:min(100%,980px); display:grid; grid-template-columns:1fr 430px; gap:70px; align-items:center; }
+.brand { display:inline-flex; align-items:center; gap:10px; font-size:20px; font-weight:700; }.brand-mark { display:grid; place-items:center; width:32px; height:32px; color:#07171a; background:var(--primary); border-radius:9px; }.eyebrow { margin:54px 0 14px; color:var(--primary); font-size:13px; font-weight:700; letter-spacing:1.8px; text-transform:uppercase; }h1 { margin:0; font-size:clamp(38px,6vw,70px); line-height:.98; letter-spacing:-3px; }.intro { max-width:480px; margin:22px 0 0; color:var(--muted); font-size:17px; line-height:1.65; }.signal-list { display:grid; gap:13px; margin-top:38px; color:var(--muted); font-size:14px; }.signal { display:flex; align-items:center; gap:10px; }.signal i { width:7px; height:7px; background:var(--success); border-radius:50%; }
+.login-card { padding:32px; background:rgba(16,35,45,.95); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 64px rgba(0,0,0,.28); }.login-card h2 { margin:0; font-size:27px; }.login-subtitle { margin:10px 0 29px; color:var(--muted); font-size:15px; }.input-group { margin-bottom:18px; }.input-group label { display:block; margin-bottom:9px; color:var(--muted); font-size:13px; font-weight:700; }.input-group input { width:100%; padding:16px 15px; border:1px solid var(--border); border-radius:8px; background:#0b1b23; color:white; outline:none; font-size:17px; }.input-group input:focus { border-color:var(--primary); }.btn-login { width:100%; padding:16px; background:linear-gradient(135deg,var(--primary),#299992); color:#07171a; border:0; border-radius:8px; font-size:17px; font-weight:bold; cursor:pointer; margin-top:8px; }.btn-login:disabled { opacity:.7; cursor:wait; }.error-msg { display:none; margin-top:16px; padding:12px; color:var(--danger); background:rgba(255,111,97,.08); border:1px solid rgba(255,111,97,.22); border-radius:7px; font-size:13px; }.footer-note { margin:24px 0 0; color:#6f898b; font-size:12px; text-align:center; }
+@media(max-width:780px) { body{padding:16px}.shell{grid-template-columns:1fr;gap:28px;max-width:430px}.eyebrow{margin-top:28px}.signal-list{display:none}.login-card{padding:26px 22px} }
 </style>
 </head>
 <body>
-<div class="login-card">
-<h2>Smart DG Portal</h2>
-<div class="input-group">
-<label for="userid">Customer ID / Admin ID</label>
-<input type="text" id="userid" placeholder="Enter your ID" required>
-</div>
-<div class="input-group">
-<label for="password">Password</label>
-<input type="password" id="password" placeholder="Enter your password" required>
-</div>
-<button class="btn-login" onclick="attemptLogin()">Secure Login</button>
-<div class="error-msg" id="error-msg">Invalid ID or password.</div>
-</div>
-
+<main class="shell">
+<section><div class="brand"><span class="brand-mark">⚡</span> DG Smart</div><p class="eyebrow">Energy intelligence portal</p><h1>Power, made visible.</h1><p class="intro">Monitor your connection, review account details, and stay in control of every unit flowing through your network.</p><div class="signal-list"><div class="signal"><i></i> Live network visibility</div><div class="signal"><i></i> Account and billing access</div><div class="signal"><i></i> Remote load control</div></div></section>
+<section class="login-card"><h2>Welcome back</h2><p class="login-subtitle">Sign in to continue to your DG Smart workspace.</p><form id="login-form"><div class="input-group"><label for="userid">Customer ID / Admin ID</label><input id="userid" required placeholder="Enter your ID"></div><div class="input-group"><label for="password">Password</label><input id="password" type="password" required placeholder="Enter your password"></div><button class="btn-login" id="login-button" type="submit">Secure Login</button><div class="error-msg" id="error-msg">The ID or password could not be verified. Please try again.</div></form><p class="footer-note">Your workspace is protected by secure account access.</p></section>
+</main>
 <script>
-    function attemptLogin() {
-            const id = document.getElementById('userid').value;
-            const pass = document.getElementById('password').value;
-            
-            fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userid: id, password: pass })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Save billing data locally so the next page can display it
-                    localStorage.setItem('custName', data.name);
-                    localStorage.setItem('custBill', data.bill_amount);
-                    localStorage.setItem('custDue', data.due_date);
-                    
-                    // Route to the correct dashboard
-                    if (data.role === 'admin') {
-                        window.location.href = "/dashboard.html"; // Your existing admin control panel
-                    } else {
-                        window.location.href = "/customer.html";
-                    }
-                } else {
-                    document.getElementById('error-msg').style.display = "block";
-                }
-            });
-        }
+document.getElementById('login-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const button = document.getElementById('login-button');
+    const error = document.getElementById('error-msg');
+    button.disabled = true;
+    button.innerText = 'Opening workspace...';
+    error.style.display = 'none';
+    fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userid:document.getElementById('userid').value.trim(), password:document.getElementById('password').value }) })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(result => { if (!result.ok) throw new Error(result.data.error || 'Login service unavailable'); if (!result.data.success) throw new Error('Invalid login'); const data = result.data; window.location.href = data.role === 'admin' ? '/dashboard.html' : '/customer.html'; })
+        .catch(loginError => { button.disabled = false; button.innerText = 'Secure Login'; error.innerText = loginError.message === 'DATABASE_UNAVAILABLE' ? 'Account database unavailable. ESP32 connection is not required for login.' : 'The ID or password could not be verified. Please try again.'; error.style.display = 'block'; });
+});
 </script>
 </body>
 </html>

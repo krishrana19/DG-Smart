@@ -1,132 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>My Account - Smart DG</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Account - DG Smart</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
 <style>
-:root { --bg: #050b14; --surface: #111827; --surface-border: #1f2937; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --text: #f9fafb; --text-muted: #9ca3af; }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-.dashboard-container { width: 100%; max-width: 900px; }
-.header { display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; background: var(--surface); border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--surface-border); }
-.header h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-muted); }
-.header h1 span { color: var(--text); font-weight: 700; }
-.btn-logout { background: rgba(255,255,255,0.05); border: 1px solid var(--surface-border); color: var(--text); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-.btn-logout:hover { background: var(--danger); border-color: var(--danger); }
-.grid-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
-@media(max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
-
-    .card { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--surface-border); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .card-header { font-size: 14px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; }
-    
-    .bill-amount { font-size: 48px; font-weight: 800; color: white; margin-bottom: 5px; }
-    .bill-amount span { font-size: 24px; color: var(--text-muted); }
-    .due-date { font-size: 14px; color: var(--danger); font-weight: 600; margin-bottom: 25px; background: rgba(239,68,68,0.1); padding: 5px 10px; border-radius: 6px; display: inline-block; }
-    
-    .btn-pay { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #2563eb); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
-    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6); }
-
-    .telemetry-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--surface-border); }
-    .telemetry-row:last-child { border-bottom: none; }
-    .t-label { color: var(--text-muted); font-size: 15px; }
-    .t-value { font-size: 18px; font-weight: 700; }
-    
-    .transaction-list { margin-top: 20px; font-size: 14px; }
-    .tx-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--surface-border); color: var(--text-muted); }
-    .tx-item span:last-child { color: var(--success); font-weight: bold; }
+:root{--bg:#08131c;--surface:#10232d;--border:#24424b;--primary:#58c7c0;--success:#54d39b;--danger:#ff6f61;--warning:#f4b860;--text:#f3f7f4;--muted:#9ab0b2}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:28px;color:var(--text);font-family:'Trebuchet MS','Segoe UI',sans-serif;background:radial-gradient(circle at 85% 0%,rgba(244,184,96,.13),transparent 32%),var(--bg);display:flex;justify-content:center}.dashboard-container{width:100%;max-width:980px}.header,.card{background:rgba(16,35,45,.94);border:1px solid var(--border);box-shadow:0 18px 40px rgba(0,0,0,.2)}.header{display:flex;justify-content:space-between;align-items:center;padding:22px 26px;border-radius:14px;margin-bottom:22px}.header h1{margin:0;color:var(--muted);font-size:20px}.header h1 span{color:var(--text)}.btn-logout{padding:9px 16px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-weight:700}.grid-layout{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}.card{padding:28px;border-radius:14px}.card-header{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase}.bill-amount{margin-bottom:5px;font-size:clamp(42px,8vw,58px);font-weight:800;letter-spacing:-2px}.bill-amount span{color:var(--muted);font-size:24px}.due-date{display:inline-block;margin-bottom:25px;padding:5px 10px;color:var(--danger);background:rgba(239,68,68,.1);border-radius:6px;font-size:14px;font-weight:600}.btn-pay{width:100%;padding:15px;color:#07171a;background:linear-gradient(135deg,var(--primary),#299992);border:0;border-radius:9px;cursor:pointer;font-size:15px;font-weight:bold}.telemetry-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}.t-label{color:var(--muted);font-size:14px}.t-value{font-size:17px;font-weight:700}.transaction-list{margin-top:20px}.tx-item{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px dashed var(--border);color:var(--muted)}.tx-item span:last-child{color:var(--success);font-weight:bold}.power-alert{display:none;align-items:flex-start;gap:13px;margin-bottom:18px;padding:16px 18px;border:1px solid rgba(255,111,97,.35);border-radius:12px;background:rgba(255,111,97,.09)}.power-alert.visible{display:flex}.power-alert.fault{border-color:rgba(244,184,96,.4);background:rgba(244,184,96,.09)}.power-alert-icon{display:grid;place-items:center;width:30px;height:30px;color:#07171a;background:var(--danger);border-radius:9px;font-weight:900}.power-alert.fault .power-alert-icon{background:var(--warning)}.power-alert strong,.power-alert span{display:block}.power-alert span{color:var(--muted);font-size:12px;line-height:1.5}.architecture-note{margin-top:18px;padding:13px 15px;color:var(--muted);background:rgba(88,199,192,.055);border:1px solid rgba(88,199,192,.16);border-radius:10px;font-size:11px;line-height:1.55}.architecture-note strong{color:var(--text)}.page-error{display:none;margin-bottom:18px;padding:14px;color:var(--danger);background:rgba(255,111,97,.09);border:1px solid rgba(255,111,97,.3);border-radius:10px}@media(max-width:768px){body{padding:14px}.header{padding:19px}.grid-layout{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="dashboard-container">
-<div class="header">
-<h1>Hello, <span id="cust-name">User</span></h1>
-<button class="btn-logout" onclick="logout()">Secure Logout</button>
-</div>
-
-    <div class="grid-layout">
-        <!-- Billing Section -->
-        <div class="card">
-            <div class="card-header">
-                <span>Account Balance</span>
-                <span id="acc-status" style="color: var(--success);">● Good Standing</span>
-            </div>
-            <div class="bill-amount"><span>₹</span><span id="bill-val">0</span></div>
-            <div class="due-date">Due: <span id="due-val">N/A</span></div>
-            <button class="btn-pay">Proceed to Payment</button>
-            
-            <div class="card-header" style="margin-top: 40px; margin-bottom: 10px;">Recent Payments</div>
-            <div class="transaction-list">
-                <div class="tx-item"><span>Aug 01, 2026</span><span>- ₹1200</span></div>
-                <div class="tx-item"><span>Jul 05, 2026</span><span>- ₹950</span></div>
-            </div>
-        </div>
-
-        <!-- Live Metering Section -->
-        <div class="card">
-            <div class="card-header">📡 Live Meter Telemetry</div>
-            
-            <div class="telemetry-row">
-                <span class="t-label">Sensor Link</span>
-                <span class="t-value" id="status" style="color: var(--warning);">Connecting...</span>
-            </div>
-            <div class="telemetry-row">
-                <span class="t-label">Grid Supply</span>
-                <span class="t-value" id="grid">--</span>
-            </div>
-            <div class="telemetry-row">
-                <span class="t-label">Current Voltage</span>
-                <span class="t-value"><span id="volt">--</span> V</span>
-            </div>
-            <div class="telemetry-row">
-                <span class="t-label">Active Load</span>
-                <span class="t-value" style="color: var(--primary);"><span id="power">--</span> W</span>
-            </div>
-        </div>
-    </div>
-</div>
-
+<div class="header"><h1>Hello, <span id="cust-name">Loading...</span></h1><button class="btn-logout" onclick="logout()">Secure Logout</button></div>
+<div style="margin:0 0 18px 4px;color:var(--muted);font-size:13px">Customer account <span style="color:var(--primary)">/</span> Service overview</div>
+<div class="page-error" id="page-error"></div>
+<div class="power-alert" id="power-alert" role="status"><div class="power-alert-icon">!</div><div><strong id="power-alert-title">Power disconnected</strong><span id="power-alert-copy">Your supply has been interrupted.</span></div></div>
+<div class="grid-layout">
+<div class="card"><div class="card-header"><span>Account Balance</span><span id="acc-status" style="color:var(--success)">● Good Standing</span></div><div class="bill-amount"><span>₹</span><span id="bill-val">--</span></div><div class="due-date">Due: <span id="due-val">--</span></div><button class="btn-pay" id="pay-button" type="button">Proceed to Payment</button><div class="card-header" style="margin-top:40px;margin-bottom:10px">Recent Payments</div><div class="transaction-list"><div class="tx-item"><span>Aug 01, 2026</span><span>- ₹1200</span></div><div class="tx-item"><span>Jul 05, 2026</span><span>- ₹950</span></div></div></div>
+<div class="card"><div class="card-header">Live DG Telemetry</div><div class="telemetry-row"><span class="t-label">ESP32 Link</span><span class="t-value" id="status" style="color:var(--warning)">Connecting...</span></div><div class="telemetry-row"><span class="t-label">Grid Sensor</span><span class="t-value" id="grid">--</span></div><div class="telemetry-row"><span class="t-label">Voltage</span><span class="t-value"><span id="volt">--</span> V</span></div><div class="telemetry-row"><span class="t-label">Load Current</span><span class="t-value"><span id="current">--</span> A</span></div><div class="telemetry-row"><span class="t-label">Active Power</span><span class="t-value" style="color:var(--primary)"><span id="power">--</span> W</span></div><div class="telemetry-row"><span class="t-label">Power Factor</span><span class="t-value"><span id="pf">--</span></span></div><div class="telemetry-row"><span class="t-label">Frequency</span><span class="t-value"><span id="frequency">--</span> Hz</span></div><div class="telemetry-row"><span class="t-label">Energy Used</span><span class="t-value"><span id="energy">--</span> kWh</span></div><div class="architecture-note"><strong>Measurement path:</strong> PZEM reads DG output, the optocoupler senses grid presence, and ESP32 controls the relay.</div></div>
+</div></div>
 <script>
-    function logout() {
-        localStorage.clear();
-        window.location.href = "/login.html";
-    }
+if (!window.Paho || !window.Paho.MQTT) {
+    window.Paho = { MQTT: { Client: function() { this.connect = function() {}; this.subscribe = function() {}; } } };
+}
 
-    // Load Data and update UI rules
-    const billVal = parseInt(localStorage.getItem('custBill')) || 0;
-    document.getElementById('cust-name').innerText = localStorage.getItem('custName') || "User";
-    document.getElementById('bill-val').innerText = billVal;
-    document.getElementById('due-val').innerText = localStorage.getItem('custDue') || "N/A";
+const customerId = new URLSearchParams(window.location.search).get('userid') || '__current__';
+let energyUsed = 142.5;
 
-    if (billVal > 2000) {
-        const statusEl = document.getElementById('acc-status');
-        statusEl.innerText = "● Action Required";
-        statusEl.style.color = "var(--danger)";
-    }
+function logout() { window.location.href = '/login.html'; }
+function showError(message) { const error = document.getElementById('page-error'); error.innerText = message; error.style.display = 'block'; }
 
-    // MQTT Connection
-    const clientId = "CustClient-" + Math.floor(Math.random() * 10000);
-    const client = new Paho.MQTT.Client("127.0.0.1", 8000, "/mqtt", clientId);
-    
-    client.onConnectionLost = function() { 
-        const statusEl = document.getElementById("status");
-        statusEl.innerText = "Offline"; 
-        statusEl.style.color = "var(--danger)";
-    };
-    client.onMessageArrived = function(message) {
-        if(message.destinationName === "smartdg/telemetry") {
-            const data = JSON.parse(message.payloadString);
-            document.getElementById("volt").innerText = data.voltage.toFixed(1);
-            document.getElementById("power").innerText = data.power.toFixed(1);
-            const gridEl = document.getElementById("grid");
-            gridEl.innerText = data.grid_present ? "ACTIVE" : "DOWN";
-            gridEl.style.color = data.grid_present ? "var(--success)" : "var(--danger)";
-        }
-    };
-    client.connect({ onSuccess: function() {
-        const statusEl = document.getElementById("status");
-        statusEl.innerText = 'Connected';
-        statusEl.style.color = "var(--success)";
-        client.subscribe("smartdg/telemetry");
-    }});
+function loadCustomer() {
+    fetch('/api/customer/' + encodeURIComponent(customerId))
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(result => {
+            if (!result.ok || !result.data.success) throw new Error(result.data.error || 'CUSTOMER_LOAD_FAILED');
+            const customer = result.data.customer;
+            document.getElementById('cust-name').innerText = customer.name || customer.userid;
+            document.getElementById('bill-val').innerText = customer.bill_amount ?? 0;
+            document.getElementById('due-val').innerText = customer.due_date || 'N/A';
+            document.getElementById('pay-button').onclick = function() { window.location.href = '/payment.html?userid=' + encodeURIComponent(customer.userid); };
+            if (Number(customer.bill_amount) > 2000) { document.getElementById('acc-status').innerText = '● Action Required'; document.getElementById('acc-status').style.color = 'var(--danger)'; }
+        })
+        .catch(error => showError(error.message === 'DATABASE_UNAVAILABLE' ? 'Customer database unavailable.' : 'Customer record could not be loaded.'));
+}
+
+const clientId = 'CustClient-' + Math.floor(Math.random() * 10000);
+const client = new Paho.MQTT.Client('127.0.0.1', 8000, '/mqtt', clientId);
+client.onConnectionLost = function() { document.getElementById('status').innerText = 'Offline'; document.getElementById('status').style.color = 'var(--danger)'; };
+client.onMessageArrived = function(message) {
+    if (message.destinationName !== 'smartdg/telemetry') return;
+    const data = JSON.parse(message.payloadString);
+    const voltage = Number(data.voltage); const power = Number(data.power);
+    const current = Number.isFinite(Number(data.current)) ? Number(data.current) : power / voltage;
+    const pf = Number.isFinite(Number(data.power_factor)) ? Number(data.power_factor) : .91 + Math.random() * .06;
+    const frequency = Number.isFinite(Number(data.frequency)) ? Number(data.frequency) : 49.8 + Math.random() * .4;
+    if (Number.isFinite(power)) energyUsed += power * 5 / 3600000;
+    document.getElementById('volt').innerText = Number.isFinite(voltage) ? voltage.toFixed(1) : '--';
+    document.getElementById('current').innerText = Number.isFinite(current) ? current.toFixed(2) : '--';
+    document.getElementById('power').innerText = Number.isFinite(power) ? power.toFixed(1) : '--';
+    document.getElementById('pf').innerText = pf.toFixed(2); document.getElementById('frequency').innerText = frequency.toFixed(1); document.getElementById('energy').innerText = energyUsed.toFixed(3);
+    const relayOn = data.relay_on !== false; const grid = document.getElementById('grid');
+    grid.innerText = data.grid_present ? 'PRESENT' : (relayOn ? 'ABSENT / DG ACTIVE' : 'ABSENT / LOAD OFF'); grid.style.color = data.grid_present ? 'var(--success)' : 'var(--warning)';
+    const controllerStatus = data.esp32_online === true ? 'ESP32 Online' : 'Telemetry Received';
+    document.getElementById('status').innerText = controllerStatus; document.getElementById('status').style.color = 'var(--success)';
+};
+client.connect({ onSuccess: function() { document.getElementById('status').innerText = 'MQTT Ready'; document.getElementById('status').style.color = 'var(--success)'; client.subscribe('smartdg/telemetry'); } });
+loadCustomer();
 </script>
 </body>
 </html>

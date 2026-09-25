@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Customer Account - DG Smart</title>
+<style>
+.card, .header { background: rgba(16,35,45,0.94); border: 1px solid var(--surface-border); box-shadow: 0 18px 40px rgba(0,0,0,0.2); }
+:root { --bg: #08131c; --surface: #10232d; --surface-border: #24424b; --primary: #58c7c0; --success: #54d39b; --danger: #ff6f61; --warning: #f4b860; --text: #f3f7f4; --text-muted: #9ab0b2; }
+* { box-sizing: border-box; }
+body { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; background: radial-gradient(circle at 85% 0%, rgba(244,184,96,0.12), transparent 32%), var(--bg); color: var(--text); margin: 0; min-height: 100vh; padding: 28px; display: flex; flex-direction: column; align-items: center; }
+.dashboard-container { width: 100%; max-width: 980px; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 26px; border-radius: 14px; margin-bottom: 22px; }
+.header h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-muted); }
+.header h1 span { color: var(--text); font-weight: 700; }
+.btn-logout { background: transparent; border: 1px solid var(--surface-border); color: var(--text-muted); padding: 9px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: 700; }
+.btn-logout:hover { background: rgba(255,111,97,0.1); border-color: var(--danger); color: var(--danger); }
+.grid-layout { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; }
+@media(max-width: 768px) { body { padding: 14px; } .header { padding: 19px; } .grid-layout { grid-template-columns: 1fr; } }
+.card { padding: 28px; border-radius: 14px; }
+.card-header { font-size: 11px; text-transform: uppercase; letter-spacing: 1.1px; color: var(--text-muted); font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; gap: 12px; }
+.bill-amount { font-size: clamp(42px, 8vw, 58px); font-weight: 800; color: white; margin-bottom: 5px; letter-spacing: -2px; }
+.bill-amount span { font-size: 24px; color: var(--text-muted); }
+.due-date { font-size: 14px; color: var(--danger); font-weight: 600; margin-bottom: 25px; background: rgba(239,68,68,0.1); padding: 5px 10px; border-radius: 6px; display: inline-block; }
+.btn-pay { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--primary), #299992); color: #07171a; border: none; border-radius: 9px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 18px rgba(88, 199, 192, 0.22); }
+.btn-pay:hover { transform: translateY(-2px); }
+.telemetry-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 17px 0; border-bottom: 1px solid var(--surface-border); }
+.telemetry-row:last-child { border-bottom: none; }
+.t-label { color: var(--text-muted); font-size: 15px; }
+.t-value { font-size: 18px; font-weight: 700; }
+.transaction-list { margin-top: 20px; font-size: 14px; }
+.tx-item { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px dashed var(--surface-border); color: var(--text-muted); }
+.tx-item span:last-child { color: var(--success); font-weight: bold; }
+body { background-image: linear-gradient(rgba(244,184,96,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(244,184,96,.02) 1px, transparent 1px), radial-gradient(circle at 85% 0%, rgba(244,184,96,0.13), transparent 32%); background-size: 42px 42px, 42px 42px, auto; }
+.dashboard-container { animation: pageIn .6s ease both; }
+.header, .card { backdrop-filter: blur(16px); }
+.header { position: relative; overflow: hidden; }
+.header::after { content: ''; position: absolute; right: -80px; top: -135px; width: 260px; height: 260px; border: 1px solid rgba(244,184,96,.14); border-radius: 50%; box-shadow: 0 0 0 28px rgba(244,184,96,.025), 0 0 0 56px rgba(244,184,96,.02); pointer-events: none; }
+.header h1, .header button { position: relative; z-index: 1; }
+.card { transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.card:hover { transform: translateY(-3px); border-color: rgba(88,199,192,.42); box-shadow: 0 22px 46px rgba(0,0,0,.25); }
+.card:first-child { background: linear-gradient(150deg, rgba(21,49,59,.96), rgba(16,35,45,.94)); }
+.card:first-child::before { content: 'ACCOUNT SNAPSHOT'; display: block; margin-bottom: 25px; color: var(--primary); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; }
+.bill-amount { text-shadow: 0 8px 28px rgba(88,199,192,.12); }
+.btn-pay { position: relative; overflow: hidden; }
+.btn-pay::after { content: '→'; position: absolute; right: 18px; font-size: 20px; line-height: 14px; transition: transform .2s ease; }
+.btn-pay:hover::after { transform: translateX(4px); }
+.power-alert { display: none; align-items: flex-start; gap: 13px; margin: 0 0 18px; padding: 16px 18px; border: 1px solid rgba(255,111,97,.35); border-radius: 12px; background: rgba(255,111,97,.09); box-shadow: 0 12px 30px rgba(0,0,0,.12); animation: alertIn .35s ease both; }
+.power-alert.visible { display: flex; }
+.power-alert.fault { border-color: rgba(244,184,96,.4); background: rgba(244,184,96,.09); }
+.power-alert-icon { flex: 0 0 auto; display: grid; place-items: center; width: 30px; height: 30px; color: #07171a; background: var(--danger); border-radius: 9px; font-weight: 900; }
+.power-alert.fault .power-alert-icon { background: var(--warning); }
+.power-alert strong, .power-alert span { display: block; }
+.power-alert strong { margin-bottom: 4px; color: var(--text); font-size: 13px; }
+.power-alert span { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.architecture-note { margin-top: 18px; padding: 13px 15px; color: var(--text-muted); background: rgba(88,199,192,.055); border: 1px solid rgba(88,199,192,.16); border-radius: 10px; font-size: 11px; line-height: 1.55; }
+.architecture-note strong { color: var(--text); }
+@keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes alertIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+<div class="header">
+<h1>Hello, <span id="cust-name">Harshdeep</span></h1>
+<button class="btn-logout" onclick="logout()">Secure Logout</button>
+</div>
+
+<div style="margin: 0 0 18px 4px; color: var(--text-muted); font-size: 13px;">Customer account <span style="color: var(--primary);">/</span> Service overview</div>
+
+<div class="power-alert" id="power-alert" role="status" aria-live="polite">
+    <div class="power-alert-icon">!</div>
+    <div><strong id="power-alert-title">Power disconnected</strong><span id="power-alert-copy">Your supply has been interrupted.</span></div>
+</div>
+
+<div class="grid-layout">
+    <div class="card">
+        <div class="card-header"><span>Account Balance</span><span id="acc-status" style="color: var(--success);">● Good Standing</span></div>
+        <div class="bill-amount"><span>₹</span><span id="bill-val">1250</span></div>
+        <div class="due-date">Due: <span id="due-val">2026-10-15</span></div>
+        <button class="btn-pay" onclick="window.location.href='fake-payment.html'">Proceed to Payment</button>
+        <div class="card-header" style="margin-top: 40px; margin-bottom: 10px;">Recent Payments</div>
+        <div class="transaction-list">
+            <div class="tx-item"><span>Aug 01, 2026</span><span>- ₹1200</span></div>
+            <div class="tx-item"><span>Jul 05, 2026</span><span>- ₹950</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">📡 Live Meter Telemetry</div>
+        <div class="telemetry-row"><span class="t-label">Sensor Link</span><span class="t-value" id="status" style="color: var(--success);">Connected</span></div>
+        <div class="telemetry-row"><span class="t-label">Grid Supply</span><span class="t-value" id="grid" style="color: var(--success);">ACTIVE</span></div>
+        <div class="telemetry-row"><span class="t-label">Current Voltage</span><span class="t-value"><span id="volt">230.0</span> V</span></div>
+        <div class="telemetry-row"><span class="t-label">Load Current</span><span class="t-value"><span id="current">2.40</span> A</span></div>
+        <div class="telemetry-row"><span class="t-label">Active Load</span><span class="t-value" style="color: var(--primary);"><span id="power">100.0</span> W</span></div>
+        <div class="telemetry-row"><span class="t-label">Power Factor</span><span class="t-value"><span id="pf">0.94</span></span></div>
+        <div class="telemetry-row"><span class="t-label">Frequency</span><span class="t-value"><span id="frequency">50.1</span> Hz</span></div>
+        <div class="telemetry-row"><span class="t-label">Energy Used</span><span class="t-value"><span id="energy">142.5</span> kWh</span></div>
+        <div class="architecture-note"><strong>How this is measured:</strong> PZEM reads DG output, the optocoupler senses grid presence, and the ESP32 controls the relay.</div>
+    </div>
+</div>
+</div>
+
+<script>
+let systemOnline = true;
+let gridPresent = true;
+let energyUsed = 142.5;
+
+function applyPowerState(state) {
+    const alert = document.getElementById('power-alert');
+    const alertTitle = document.getElementById('power-alert-title');
+    const alertCopy = document.getElementById('power-alert-copy');
+    const status = document.getElementById('status');
+    const grid = document.getElementById('grid');
+
+    if (state === 'ADMIN_CUT') {
+        systemOnline = false;
+        alert.className = 'power-alert visible';
+        alertTitle.innerText = 'Power Disconnected by Admin';
+        alertCopy.innerText = 'Your account is in Good Standing. The supply was stopped remotely by the operations team.';
+        status.innerText = 'ESP32 Online';
+        status.style.color = 'var(--danger)';
+        grid.innerText = gridPresent ? 'ACTIVE' : 'ABSENT';
+        grid.style.color = gridPresent ? 'var(--success)' : 'var(--danger)';
+    } else if (state === 'DG_RUNNING') {
+        systemOnline = true;
+        alert.className = 'power-alert visible fault';
+        alertTitle.innerText = 'Main Grid Offline - DG Running';
+        alertCopy.innerText = 'The main grid is unavailable. Your backup generator is supplying power automatically.';
+        status.innerText = 'Backup Active';
+        status.style.color = 'var(--warning)';
+        grid.innerText = 'DG ACTIVE';
+        grid.style.color = 'var(--warning)';
+    } else if (state === 'FAULT') {
+        systemOnline = false;
+        alert.className = 'power-alert visible fault';
+        alertTitle.innerText = 'Fault Detected';
+        alertCopy.innerText = 'The system detected a supply issue. Operations is checking the connection.';
+        status.innerText = 'Fault';
+        status.style.color = 'var(--warning)';
+        grid.innerText = 'DOWN';
+        grid.style.color = 'var(--danger)';
+    } else if (!gridPresent) {
+        systemOnline = true;
+        alert.className = 'power-alert visible fault';
+        alertTitle.innerText = 'Main Grid Absent - DG Active';
+        alertCopy.innerText = 'The optocoupler detected that the main grid is unavailable. PZEM readings are from the DG output.';
+        status.innerText = 'ESP32 Online';
+        status.style.color = 'var(--success)';
+        grid.innerText = 'DG ACTIVE';
+        grid.style.color = 'var(--warning)';
+    } else {
+        systemOnline = true;
+        alert.className = 'power-alert';
+        status.innerText = 'Connected';
+        status.style.color = 'var(--success)';
+        grid.innerText = 'ACTIVE';
+        grid.style.color = 'var(--success)';
+    }
+    updateTelemetry();
+}
+
+window.addEventListener('storage', function(event) {
+    if (event.key === 'dgPowerState') applyPowerState(event.newValue || 'CONNECTED');
+});
+
+applyPowerState(localStorage.getItem('dgPowerState') || 'CONNECTED');
+
+function logout() {
+    document.getElementById('status').innerText = 'Session ended';
+    document.getElementById('status').style.color = 'var(--warning)';
+}
+
+function updateTelemetry() {
+    const voltage = systemOnline ? 228 + Math.random() * 7 : null;
+    const power = systemOnline ? 480 + Math.random() * 80 : null;
+    const current = power === null ? null : power / voltage;
+    const powerFactor = systemOnline ? 0.91 + Math.random() * 0.06 : null;
+    const frequency = systemOnline ? 49.8 + Math.random() * 0.4 : null;
+    if (power !== null) energyUsed += power * 2.5 / 3600000;
+    document.getElementById('volt').innerText = voltage === null ? '--' : voltage.toFixed(1);
+    document.getElementById('current').innerText = current === null ? '--' : current.toFixed(2);
+    document.getElementById('power').innerText = power === null ? '--' : power.toFixed(1);
+    document.getElementById('pf').innerText = powerFactor === null ? '--' : powerFactor.toFixed(2);
+    document.getElementById('frequency').innerText = frequency === null ? '--' : frequency.toFixed(1);
+    document.getElementById('energy').innerText = energyUsed.toFixed(3);
+}
+
+setInterval(updateTelemetry, 2500);
+updateTelemetry();
+</script>
+</body>
+</html>
